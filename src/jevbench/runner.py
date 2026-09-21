@@ -56,6 +56,9 @@ async def evaluate(
     keys = [cache.key(clf.name, clf.model_id, dataset.name, t, dataset.labels) for t in texts]
 
     clf.prepare(dataset)
+    if not is_api(clf) and texts:
+        # warm up kernels / weights so the first timed example is not an outlier
+        await clf.predict_batch(texts[:1], dataset.labels, parallelism=1)
 
     cached = [cache.get(k) for k in keys] if use_cache else [None] * len(keys)
     from_cache = use_cache and all(c is not None for c in cached)

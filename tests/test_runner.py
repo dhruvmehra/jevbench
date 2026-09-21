@@ -54,6 +54,16 @@ async def test_errors_are_not_cached(tmp_path):
     assert clf.calls == [1]  # nothing was cached, so it re-ran
 
 
+async def test_local_classifier_gets_warmup_call(tmp_path):
+    class Local(Fake):
+        name = "bert-zs"
+
+    ds = Dataset("sst2", {"a": "A", "b": "B"}, [Example("x", "a"), Example("y", "a")])
+    clf = Local()
+    await evaluate(clf, ds, Cache(str(tmp_path / "c.sqlite")), 4, 8, skip_throughput=False, use_cache=False)
+    assert clf.calls == [1, 1, 8]  # warmup, latency pass, throughput at local batch size
+
+
 def test_build_classifiers_local_only_needs_no_key():
     cfg = {
         "jev": {"model": "typesafe/jev-1.13"},
