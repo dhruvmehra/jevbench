@@ -1,0 +1,25 @@
+[jev]
+model = "typesafe/jev-1.13"
+
+[llm.cheap]
+model = "openai/gpt-5-mini"
+reasoning_effort = "minimal"
+
+[llm.frontier]
+model = "anthropic/claude-sonnet-5"
+reasoning_effort = "low"
+
+[bert]
+finetune_base = "distilbert-base-uncased"
+zeroshot_model = "facebook/bart-large-mnli"
+train_cap = 10000
+epochs = 3
+lr = 5e-5
+max_len = 128
+batch_size = 32
+
+[run]
+n = 500
+seed = 0
+api_concurrency = 8
+local_batch_size = 32
