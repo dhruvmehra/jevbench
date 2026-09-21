@@ -10,6 +10,7 @@ dependencies = [
   "torch>=2.4",
   "numpy>=1.26",
   "python-dotenv>=1.0",
+  "laya>=0.3.5",
 ]
 
 [project.optional-dependencies]
