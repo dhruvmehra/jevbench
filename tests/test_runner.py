@@ -1,7 +1,7 @@
 from jevbench.cache import Cache
 from jevbench.classifiers.base import Prediction
 from jevbench.datasets import Dataset, Example
-from jevbench.runner import build_classifiers, evaluate
+from jevbench.runner import build_classifiers, evaluate, group_classifiers
 
 
 class Fake:
@@ -74,3 +74,14 @@ def test_build_classifiers_local_only_needs_no_key():
     clfs = build_classifiers(["jev", "llm-cheap", "bert-zs", "bert-ft"], cfg, "KEY")
     assert [c.name for c in clfs] == ["jev", "llm-cheap", "bert-zs", "bert-ft"]
     assert clfs[1].model_id == "openai/gpt-5-mini" and clfs[1].reasoning_effort == "minimal"
+
+
+def test_group_classifiers_splits_api_from_local():
+    class C:
+        def __init__(self, name):
+            self.name = name
+            self.model_id = "m"
+
+    api, local = group_classifiers([C("jev"), C("bert-ft"), C("llm-cheap"), C("bert-zs"), C("llm-frontier")])
+    assert [c.name for c in api] == ["jev", "llm-cheap", "llm-frontier"]
+    assert [c.name for c in local] == ["bert-ft", "bert-zs"]

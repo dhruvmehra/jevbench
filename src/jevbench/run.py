@@ -10,7 +10,7 @@ from . import datasets as D
 from .cache import Cache
 from .config import api_key, load_config
 from .report import write_summary
-from .runner import build_classifiers, evaluate
+from .runner import build_classifiers, evaluate, group_classifiers
 
 ALL_CLASSIFIERS = ["jev", "llm-cheap", "llm-frontier", "bert-ft", "bert-zs"]
 
@@ -49,8 +49,8 @@ async def run(args) -> Path:
     for ds_name in args.datasets:
         print(f"\n=== {ds_name}: loading (n={n}, seed={seed}) ===", flush=True)
         ds = D.load(ds_name, n, seed, cfg["bert"]["train_cap"])
-        for clf in clfs:
-            print(f"--- {clf.name} ({clf.model_id}) on {ds_name}", flush=True)
+        async def run_one(clf):
+            print(f"--- {clf.name} ({clf.model_id}) on {ds_name}: started", flush=True)
             try:
                 res = await evaluate(
                     clf, ds, cache,
@@ -60,16 +60,25 @@ async def run(args) -> Path:
                     use_cache=not args.no_cache,
                 )
             except Exception as e:  # noqa: BLE001 - one classifier failing must not kill the run
-                print(f"    FAILED: {e!r}", flush=True)
-                continue
+                print(f"--- {clf.name} on {ds_name}: FAILED: {e!r}", flush=True)
+                return
             m = res["metrics"]
             print(
-                f"    acc={m['accuracy']:.3f} f1={m['macro_f1']:.3f} err={m['error_rate']:.2%} "
-                f"p50={m['latency_p50_ms'] or 0:.0f}ms tp={m['throughput_ex_s'] or 0:.1f}/s "
+                f"--- {clf.name} on {ds_name}: done  acc={m['accuracy']:.3f} f1={m['macro_f1']:.3f} "
+                f"err={m['error_rate']:.2%} p50={m['latency_p50_ms'] or 0:.0f}ms "
+                f"tp={m['throughput_ex_s'] or 0:.1f}/s "
                 f"$/1k={m['cost_per_1k_usd'] if m['cost_per_1k_usd'] is not None else 0:.4f}",
                 flush=True,
             )
             (run_dir / f"{clf.name}__{ds_name}.json").write_text(json.dumps(res, indent=1, default=str))
+
+        api_clfs, local_clfs = group_classifiers(clfs)
+        # API classifiers run concurrently with each other (each still sequential internally);
+        # local models run one at a time so they do not contend for the GPU.
+        if api_clfs:
+            await asyncio.gather(*(run_one(c) for c in api_clfs))
+        for c in local_clfs:
+            await run_one(c)
     out = write_summary(run_dir)
     print(f"\nWrote {out}\n")
     print(out.read_text())

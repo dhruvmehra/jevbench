@@ -18,6 +18,13 @@ def is_api(clf: Classifier) -> bool:
     return clf.name.startswith(("jev", "llm"))
 
 
+def group_classifiers(clfs: list[Classifier]) -> tuple[list[Classifier], list[Classifier]]:
+    """API classifiers may run concurrently with each other; local ones must run one at a time."""
+    api = [c for c in clfs if is_api(c)]
+    local = [c for c in clfs if not is_api(c)]
+    return api, local
+
+
 def hardware() -> str:
     return f"{platform.system()} {platform.machine()}, {platform.processor() or 'unknown cpu'}"
 
