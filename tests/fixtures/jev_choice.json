@@ -1,0 +1,4 @@
+{"answers": {"label": {"type": "choice", "choice": "positive",
+  "probabilities": {"negative": 0.08, "positive": 0.92}, "confidence": 0.84}},
+ "usage": {"input_tokens": 120, "output_tokens": 20, "cost": 0.00000504},
+ "provider": "TypeSafe", "model": "typesafe/jev-1.13-20260917"}
