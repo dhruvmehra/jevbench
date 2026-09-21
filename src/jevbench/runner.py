@@ -84,6 +84,8 @@ async def evaluate(
 
     if not skip_throughput:
         par = parallelism_api if is_api(clf) else local_batch
+        if not getattr(clf, "supports_batch", True):
+            par = 1
         t0 = time.perf_counter()
         tp_preds = await clf.predict_batch(texts, dataset.labels, parallelism=par)
         wall = time.perf_counter() - t0
@@ -101,6 +103,7 @@ async def evaluate(
         "predictions": [p.to_dict() for p in preds],
         "metrics": m,
         "train_seconds": getattr(clf, "train_seconds", None),
+        "load_seconds": getattr(clf, "load_seconds", None),
         "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
         "hardware": hardware(),
     }
@@ -118,6 +121,10 @@ def build_classifiers(names: list[str], cfg: dict, key: str | None) -> list[Clas
 
             tier = cfg["llm"][name.removeprefix("llm-")]
             out.append(LLMClassifier(name, tier["model"], key or "", tier.get("reasoning_effort")))
+        elif name == "laya":
+            from .classifiers.laya import LayaClassifier
+
+            out.append(LayaClassifier(cfg["laya"]["model"]))
         elif name == "bert-zs":
             from .classifiers.bert_zeroshot import ZeroShotClassifier
 

@@ -67,12 +67,13 @@ async def test_local_classifier_gets_warmup_call(tmp_path):
 def test_build_classifiers_local_only_needs_no_key():
     cfg = {
         "jev": {"model": "typesafe/jev-1.13"},
+        "laya": {"model": "convaiinnovations/laya"},
         "llm": {"cheap": {"model": "openai/gpt-5-mini", "reasoning_effort": "minimal"}},
         "bert": {"finetune_base": "distilbert-base-uncased", "zeroshot_model": "facebook/bart-large-mnli",
                  "epochs": 1, "lr": 1e-5, "max_len": 64, "batch_size": 8},
     }
-    clfs = build_classifiers(["jev", "llm-cheap", "bert-zs", "bert-ft"], cfg, "KEY")
-    assert [c.name for c in clfs] == ["jev", "llm-cheap", "bert-zs", "bert-ft"]
+    clfs = build_classifiers(["jev", "llm-cheap", "bert-zs", "bert-ft", "laya"], cfg, "KEY")
+    assert [c.name for c in clfs] == ["jev", "llm-cheap", "bert-zs", "bert-ft", "laya"]
     assert clfs[1].model_id == "openai/gpt-5-mini" and clfs[1].reasoning_effort == "minimal"
 
 
@@ -85,3 +86,14 @@ def test_group_classifiers_splits_api_from_local():
     api, local = group_classifiers([C("jev"), C("bert-ft"), C("llm-cheap"), C("bert-zs"), C("llm-frontier")])
     assert [c.name for c in api] == ["jev", "llm-cheap", "llm-frontier"]
     assert [c.name for c in local] == ["bert-ft", "bert-zs"]
+
+
+async def test_unbatchable_local_classifier_throughput_uses_parallelism_1(tmp_path):
+    class Laya(Fake):
+        name = "laya"
+        supports_batch = False
+
+    ds = Dataset("sst2", {"a": "A", "b": "B"}, [Example("x", "a")])
+    clf = Laya()
+    r = await evaluate(clf, ds, Cache(str(tmp_path / "c.sqlite")), 4, 32, skip_throughput=False, use_cache=False)
+    assert clf.calls == [1, 1, 1] and r["metrics"]["throughput_parallelism"] == 1

@@ -1,12 +1,13 @@
 # jevbench
 
-Is TypeSafe's **JEV** a better text classifier than LLMs or BERT? This benchmark runs five
+Is TypeSafe's **JEV** a better text classifier than LLMs or BERT? This benchmark runs six
 classifiers over three public datasets and reports accuracy, calibration, latency,
 throughput and cost side by side.
 
 | Classifier | What it is | Access |
 |---|---|---|
 | `jev` | TypeSafe `typesafe/jev-1.13`, System One model, one `choice` question per example | OpenRouter **Decisions API** (`/api/alpha/decisions`) |
+| `laya` | Convai `convaiinnovations/laya`, open-weights (Apache 2.0) System One model, 421M params, same question format as JEV | local, MPS/CPU |
 | `llm-cheap` | small fast LLM (default `openai/gpt-5-mini`), JSON-schema enum output | OpenRouter chat completions |
 | `llm-frontier` | frontier LLM (default `anthropic/claude-sonnet-5`), same prompt | OpenRouter chat completions |
 | `bert-ft` | `distilbert-base-uncased` fine-tuned per dataset on ≤10k train examples | local, MPS/CPU |

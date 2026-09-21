@@ -12,7 +12,7 @@ from .config import api_key, load_config
 from .report import write_summary
 from .runner import build_classifiers, evaluate, group_classifiers
 
-ALL_CLASSIFIERS = ["jev", "llm-cheap", "llm-frontier", "bert-ft", "bert-zs"]
+ALL_CLASSIFIERS = ["jev", "laya", "llm-cheap", "llm-frontier", "bert-ft", "bert-zs"]
 
 
 def parse(argv=None):
