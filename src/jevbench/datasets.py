@@ -90,10 +90,10 @@ DATASETS: dict[str, DatasetSpec] = {
     "agnews": DatasetSpec(
         "fancyzhx/ag_news", "test", "text",
         {
-            "world": "World news: politics, governments, international affairs, conflicts.",
-            "sports": "Sports news: games, athletes, teams, matches, results.",
-            "business": "Business news: companies, markets, economy, finance, deals.",
-            "sci_tech": "Science and technology news: research, software, hardware, internet.",
+            "world": "World news: international affairs, politics, governments, elections, wars, conflicts, disasters and crime. Not business, sports or technology.",
+            "sports": "Sports news: games, matches, athletes, teams, leagues, scores, transfers and results.",
+            "business": "Business news: stock markets, earnings, economy, oil and commodities, trade, mergers, airlines, retail and companies outside the technology sector.",
+            "sci_tech": "Science and technology news: technology companies and their products, earnings or lawsuits (e.g. Microsoft, Google, Apple, IBM, Intel), software, hardware, internet, telecom, video games, space, and scientific or medical research.",
         },
     ),
     "banking77": DatasetSpec(
