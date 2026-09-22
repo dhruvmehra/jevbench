@@ -6,3 +6,4 @@ cache.sqlite
 models/
 results/
 .pytest_cache/
+docs/linkedin-article.md
