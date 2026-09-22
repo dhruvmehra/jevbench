@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 .env
 cache.sqlite
-models/
-results/
+/models/
+/results/
 .pytest_cache/
 docs/linkedin-article.md
